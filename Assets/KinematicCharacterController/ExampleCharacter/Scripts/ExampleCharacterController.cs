@@ -44,6 +44,12 @@ namespace KinematicCharacterController.Examples
     {
         public KinematicCharacterMotor Motor;
 
+        [Header("Animations")] 
+        [SerializeField] private string _moveBool;
+        [SerializeField] private string _jumpTrigger;
+        [SerializeField] private string _jumpDownBool;
+        [SerializeField] private Animator _animator;
+
         [Header("Stable Movement")]
         public float MaxStableMoveSpeed = 10f;
         public float StableMovementSharpness = 15f;
@@ -301,6 +307,7 @@ namespace KinematicCharacterController.Examples
 
                             // Smooth movement Velocity
                             currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1f - Mathf.Exp(-StableMovementSharpness * deltaTime));
+                            _animator.SetBool(_moveBool, targetMovementVelocity.sqrMagnitude > 0);
                         }
                         // Air movement
                         else
@@ -363,10 +370,10 @@ namespace KinematicCharacterController.Examples
                                 {
                                     jumpDirection = Motor.GroundingStatus.GroundNormal;
                                 }
-
                                 // Makes the character skip ground probing/snapping on its next update. 
                                 // If this line weren't here, the character would remain snapped to the ground when trying to jump. Try commenting this line out and see.
                                 Motor.ForceUnground();
+                                //_animator.SetTrigger(_jumpTrigger);
 
                                 // Add to the return velocity and reset jump state
                                 currentVelocity += (jumpDirection * JumpUpSpeed) - Vector3.Project(currentVelocity, Motor.CharacterUp);
@@ -503,10 +510,13 @@ namespace KinematicCharacterController.Examples
 
         protected void OnLanded()
         {
+            _animator.SetBool(_jumpDownBool, true);
         }
 
         protected void OnLeaveStableGround()
         {
+            _animator.SetBool(_jumpDownBool, false);
+            _animator.SetTrigger(_jumpTrigger);
         }
 
         public void OnDiscreteCollisionDetected(Collider hitCollider)
